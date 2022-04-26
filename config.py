@@ -1,20 +1,21 @@
 import hexbytes
+from web3 import Web3
 
 # The configuration options to connect to the blockchain and the DEXes
 config = {
     # the address of the Ethereum account that this program is controlling – 
     # it is the balance that this account has, in both ETH and TC, that constitutes the holdings of this account
-    'account_address': '0x5cdaceb62d1de4cc57dfab6039379439450c4a4b', 
+    'account_address': '0x5cdaceb62d1de4cc57dfab6039379439450c4a4b', # done
 
     # the (decrypted) private key for that account
-    'account_private_key': hexbytes.HexBytes('c9376204f7632f8379cda4c336a0463f2f196665f9792f6387fbec5c80beeb13'),
+    'account_private_key': hexbytes.HexBytes('c9376204f7632f8379cda4c336a0463f2f196665f9792f6387fbec5c80beeb13'), # done
     
     # whether the connection URI (which is on the next line in this file) is a geth.ipc file or a URL – this will determine how the web3 provider is created
     'connection_is_ipc': True,
 
     # connect to the blockchain – this will either be the path to a geth.ipc file or a URL to the course server;
     # you either have to pass it to a Web3.IPCProvider() call or a Web3.WebsocketProvider() call
-    'connection_uri': '/path/to/geth.ipc',
+    'connection_uri': Web3(Web3.IPCProvider()), #'/path/to/geth.ipc',
 
 
     'price_eth': 100.00, # the current price of ETH, in USD, as a float – this is without all the extra decimal places
