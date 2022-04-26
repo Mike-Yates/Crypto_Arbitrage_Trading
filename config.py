@@ -22,10 +22,10 @@ config = {
     'price_tc': 10.0, # the current price of TC, in USD, as a float – this is without all the extra decimal places
     
     # the smart contract addresses of the various TokenDEX smart contracts; there will be at least two in this list
-    'dex_addrs': ['0x123456789abcdef0123456789abcdef123456789', '0x123456789abcdef0123456789abcdef123456789', 
-                  '0x123456789abcdef0123456789abcdef123456789', '0x123456789abcdef0123456789abcdef123456789',
-                  '0x123456789abcdef0123456789abcdef123456789'],
-    'tokencc_addr': '0x123456789abcdef0123456789abcdef123456789', # the smart address of the TokenCC smart contract
+    'dex_addrs': ['0x5704ACDcA85a2471eDC29921962Eed73a403A025', '0x14A7685511e63552b1318EA08E736C19639b8fa2', 
+                  '0x8978cD8403d110849CC5dF0E6bd0458Cd0468c8E', '0x2742B215b1288945f876F94ae1793FDBeB6AFF79',
+                  '0x39b904946e03d8B469f3D70C9f8F7C64A2475dE8'],
+    'tokencc_addr': '0x2fD25B934BdAcCe701947763A2624f12600301F3', # the smart address of the TokenCC smart contract
 }
 
 # This should do nothing for now -- we are going to use it when grading.  You
