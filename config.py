@@ -5,7 +5,7 @@ from web3 import Web3
 config = {
     # the address of the Ethereum account that this program is controlling – 
     # it is the balance that this account has, in both ETH and TC, that constitutes the holdings of this account
-    'account_address': '0x5cdaceb62d1de4cc57dfab6039379439450c4a4b', # done
+    'account_address': '0x5CdaCEB62D1de4cC57dfAb6039379439450c4a4B', # done
 
     # the (decrypted) private key for that account
     'account_private_key': hexbytes.HexBytes('c9376204f7632f8379cda4c336a0463f2f196665f9792f6387fbec5c80beeb13'), # done
