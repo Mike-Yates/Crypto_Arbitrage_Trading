@@ -6,6 +6,10 @@ from config import *
 def performArbitrage(): 
     hook() #  function needs be called at the start of each program execution run
 
+    # set up config.py 
+    # arbitrage_address = '0xCcb76654cd083dE3497B80AB0115B6Da57DF6Fe5'
+
+
     # connected to the course server
     # w3 = Web3(Web3.IPCProvider()) # uses the first available IPC file 
     w3 = config['connection_uri']

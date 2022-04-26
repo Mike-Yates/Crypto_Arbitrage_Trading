@@ -22,13 +22,12 @@ config = {
     'price_tc': 10.0, # the current price of TC, in USD, as a float – this is without all the extra decimal places
     
     # the smart contract addresses of the various TokenDEX smart contracts; there will be at least two in this list
-    'dex_addrs': ['0x73d5596F97950f1048b251E3e3Ee5ab888d76d37', '0x3A09bB767270BADdFe534CD3cF830c14c65adA73', 
-                  '0x4e2d190457f1fAA2BC7C8aabFb9b829Da008d18A', '0x8b57CFdc9B15494D057BB80B31f2892a2133161F',
-                  '0xbe245E7D7ae23A37f4e56990bFFBAaaBeD4eCE72'],
-    'tokencc_addr': '0x5C9eb5D6a6C2c1B3EFc52255C0b356f116f6f66D', # the smart address of the TokenCC smart contract
+    'dex_addrs': ['0x396EA7e329A1f6b004A65121700670a8067519c8', '0xCa4Ea4215b8d30A34aa1f716E99113FD7Bc28B57', 
+                  '0x1bD624BA3BDDA238eD7863E0D989299f51F775Bc', '0xB1648e6EfD1651cB31C643017D5512FA071c463F',
+                  '0x48c1027d738aA1fE2c53a494e9fb5fae55cA20F9'],
+    'tokencc_addr': '0xDFCd346c039a976c93fc8E53A2E9a16855925A98', # the smart address of the TokenCC smart contract
 }
-# arbitrage contract address: 0xd9145CCE52D386f254917e481eB44e9943F39138
-# etherpricer: 0xb8f43EC36718ecCb339B75B727736ba14F174d77
+# arbitrage contract address: 0xCcb76654cd083dE3497B80AB0115B6Da57DF6Fe5
 
 # This should do nothing for now -- we are going to use it when grading.  You
 # should call this first thing once the program starts, but after the import
