@@ -17,8 +17,8 @@ def performArbitrage():
         qe = dex_values[i]['qe']
         dex_values[i]['qt'] = contract.functions.balanceOf(config['account_address']).call() / (10**10) # this returns how much token the account address has 
         qt = dex_values[i]['qt'] 
-        print("my account has this much ether: " + str(qe))
-        print("my account has this much token coin: " + str(qt))
+        #print("my account has this much ether: " + str(qe))
+        #print("my account has this much token coin: " + str(qt))
        
         contract = w3.eth.contract(address=dex_address, abi=dex_abi)
         dex_info = contract.functions.getDEXinfo().call()
@@ -94,8 +94,8 @@ def performArbitrage():
         after_holdings_4 = (qt+f*yd-f*kd/(xd+δe2)) * pt + (qe-δe2) * pe - g * pe
         
         greatest_after_holding = max(after_holdings_1, after_holdings_2, after_holdings_3, after_holdings_4)
-        print('the best after holding was ' + str(greatest_after_holding))
-        print("the current holding is" + str(h_now))
+        #print('the best after holding was ' + str(greatest_after_holding))
+        #print("the current holding is" + str(h_now))
         # compare to before holding. 
         if(greatest_after_holding > h_now):
             # print('profit exists')
@@ -119,7 +119,7 @@ def performArbitrage():
                 dex_values[i]['token_amount'] = yd - (kd / (xd + δe2))
                 dex_values[i]['ether_amount'] = δe2
         else: 
-            print("no profit here")
+            #print("no profit here")
             dex_values[i]['amount'] = 0
             dex_values[i]['tokenForEth'] = False 
             dex_values[i]['h_after'] = 0  
@@ -141,12 +141,12 @@ def performArbitrage():
         output(0, 0, 0, 0)
     else:
         # make transaction 
-        print('winning index was ' + str(winning_dex_index))
+        #print('winning index was ' + str(winning_dex_index))
         
         tok_amount = int(dex_values[winning_dex_index]['token_amount'] * (10**10))
-        print("the token (small denomination) amount to be traded is" + str(tok_amount))
+        #print("the token (small denomination) amount to be traded is" + str(tok_amount))
         eth_amount = dex_values[winning_dex_index]['ether_amount'] 
-        print("the eth amount to be traded is" + str(eth_amount))
+        #print("the eth amount to be traded is" + str(eth_amount))
         if(dex_values[winning_dex_index]['tokenForEth']): # token for ether transfer 
             contract = w3.eth.contract(address=config['tokencc_addr'], abi=cc_abi)
             transaction = contract.functions.approve(config['dex_addrs'][winning_dex_index], tok_amount).buildTransaction({
@@ -173,12 +173,11 @@ def performArbitrage():
             ret = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             transaction_receipt = w3.eth.wait_for_transaction_receipt(ret)
             # tx = w3.eth.get_transaction(ret)
-            print("the status of the transaction1 was " + str(transaction_receipt['status']))
-            printRevertReason(w3, ret)
+            #print("the status of the transaction1 was " + str(transaction_receipt['status']))
+            #printRevertReason(w3, ret)
             final_gas_fee = transaction_receipt['cumulativeGasUsed'] * 10 * (10**-9) * config['price_eth']
         else: # ether for token transfer
-            print(eth_amount)
-            print(type(eth_amount))
+            #print(eth_amount)
             contract = w3.eth.contract(address=config['dex_addrs'][winning_dex_index], abi=dex_abi)
             transaction = contract.functions.exchangeEtherForToken().buildTransaction({
                 'gas': 150000,
@@ -190,8 +189,8 @@ def performArbitrage():
             signed_txn = w3.eth.account.signTransaction(transaction, private_key=config['account_private_key'])
             ret = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
             transaction_receipt = w3.eth.wait_for_transaction_receipt(ret)
-            print("the status of the transaction2 was " + str(transaction_receipt['status']))
-            printRevertReason(w3, ret)
+            #print("the status of the transaction2 was " + str(transaction_receipt['status']))
+            #printRevertReason(w3, ret)
             # tx = w3.eth.get_transaction(ret)
             final_gas_fee = transaction_receipt['cumulativeGasUsed'] * 10 * (10**-9) * config['price_eth']
 
