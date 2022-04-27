@@ -6,13 +6,8 @@ import math
 hook() #  function needs be called at the start of each program execution run
 
 def performArbitrage(): 
-    arbitrage_address = '0xCcb76654cd083dE3497B80AB0115B6Da57DF6Fe5'   
-
-    # w3 = Web3(Web3.IPCProvider()) # uses the first available IPC file 
     w3 = config['connection_uri']
     print(w3.isConnected())
-    
-    abi = dex_abi # ABI for DEX.sol
 
     dex_values = [{}, {}, {}, {}, {}] 
     i = 0
@@ -25,7 +20,7 @@ def performArbitrage():
         dex_values[i]['qt'] = contract.functions.balanceOf(config['account_address']).call() / (10**10) # this returns how much token the account address has 
         qt = dex_values[i]['qt'] 
        
-        contract = w3.eth.contract(address=dex_address, abi=abi)
+        contract = w3.eth.contract(address=dex_address, abi=dex_abi)
         dex_info = contract.functions.getDEXinfo().call()
 
         # The DEX values are x, y, and k
@@ -124,6 +119,27 @@ def performArbitrage():
         # no dexes have profit 
         output(0, 0, 0, 0)
     else:
+        # make transaction 
+        contract = w3.eth.contract(address=dex_address, abi=dex_abi)
+        tok_amount = dex_values[winning_dex_index]['token_amount'] 
+        eth_amount = dex_values[winning_dex_index]['ether_amount'] 
+        if(dex_values[winning_dex_index]['tokenForEth']): # token for ether transfer 
+            transaction = contract.functions.exchangeTokenForEther(tok_amount).buildTransaction({
+                'gas': 150000,
+                'gasPrice': w3.toWei('10', 'gwei'),
+                'value': w3.toWei(eth_amount, 'ether'), # the amount of gas shouldn't be dependent on how much ether is transfered 
+                'from': config['account_address'],
+                'nonce': w3.eth.get_transaction_count( config['account_address'] )
+            })
+        else: # ether for token transfer
+            transaction = contract.functions.exchangeEtherForToken().buildTransaction({
+                'gas': 150000,
+                'gasPrice': w3.toWei('10', 'gwei'),
+                'value': w3.toWei(eth_amount, 'ether'), # the amount of gas shouldn't be dependent on how much ether is transfered 
+                'from': config['account_address'],
+                'nonce': w3.eth.get_transaction_count( config['account_address'] )
+            })
+
         # output(ethAmt, tcAmt, fees, holdings)  # does fees take into account the dex fees? Directions say no 
         output(dex_values[winning_dex_index]['ether_amount'], dex_values[winning_dex_index]['token_amount'], dex_values[winning_dex_index]['g'], dex_values[winning_dex_index]['h_after'])
 

@@ -15,7 +15,7 @@ config = {
 
     # connect to the blockchain – this will either be the path to a geth.ipc file or a URL to the course server;
     # you either have to pass it to a Web3.IPCProvider() call or a Web3.WebsocketProvider() call
-    'connection_uri': Web3(Web3.IPCProvider()), #'/path/to/geth.ipc',
+    'connection_uri': Web3(Web3.IPCProvider()), #'/path/to/geth.ipc', # uses the first available IPC file 
 
 
     'price_eth': 100.00, # the current price of ETH, in USD, as a float – this is without all the extra decimal places
