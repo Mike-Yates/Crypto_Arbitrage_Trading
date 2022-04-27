@@ -7,8 +7,6 @@ hook() #  function needs be called at the start of each program execution run
 
 def performArbitrage(): 
     w3 = config['connection_uri']
-    print(w3.isConnected())
-
     dex_values = [{}, {}, {}, {}, {}] 
     i = 0
     for dex_address in config['dex_addrs']: # loop through all the dexes. 
@@ -51,7 +49,7 @@ def performArbitrage():
             'nonce': w3.eth.get_transaction_count( config['account_address'] )
         })
 
-        dex_values[i]['g'] = w3.eth.estimateGas(transaction) * 10 * (10**-9) * pe # 10 gwei per gas. 10^9 gwei in ether, multiply b y the price of ether -> USD 
+        dex_values[i]['g'] = w3.eth.estimateGas(transaction) * 10 * (10**-9) # 10 gwei per gas. 10^9 gwei in ether -> eth 
         g = dex_values[i]['g']
         # print(g)
 
@@ -65,6 +63,15 @@ def performArbitrage():
         # δt =  − yd± √ (f*kd*pe/pt)
         δt1 = -yd + math.sqrt(f*kd*pe / pt) # how much token to trade in 
         δt2 = -yd - math.sqrt(f*kd*pe / pt) 
+        if(δt1<0): # account for negatives
+            δt1 = 0
+        if(δt1>qt): # account for amounts greater than I own 
+            δt1 = qt
+        if(δt2<0):
+            δt2 = 0
+        if(δt2>qt): 
+            δt2 = qt
+        
         # after holding formula: 
         after_holdings_1 = (qe+f*xd-f*kd/(yd+δt1)) * pe + (qt-δt1) * pt - (g*2) * pe # g*2 to take into account th approving of tokens 
         after_holdings_2 = (qe+f*xd-f*kd/(yd+δt2)) * pe + (qt-δt2) * pt - (g*2) * pe
@@ -72,13 +79,24 @@ def performArbitrage():
         # try trading in eth to receive tc 
         δe1 = -xd + math.sqrt(f*kd*pt / pe) 
         δe2 = -xd - math.sqrt(f*kd*pt / pe) 
+        if(δe1<0): # account for negatives
+            δe1 = 0
+        if(δe1>qe): # account for amounts greater than I own 
+            δe1 = qe
+        if(δe2<0):
+            δe2 = 0
+        if(δe2>qe): # account for amounts greater than I own 
+            δe2 = qe
+
         after_holdings_3 = (qt+f*yd-f*kd/(xd+δe1)) * pt + (qe-δe1) * pe - g * pe
         after_holdings_4 = (qt+f*yd-f*kd/(xd+δe2)) * pt + (qe-δe2) * pe - g * pe
         
         greatest_after_holding = max(after_holdings_1, after_holdings_2, after_holdings_3, after_holdings_4)
+        print('the best after holding was ' + str(greatest_after_holding))
+        print("the current holding is" + str(h_now))
         # compare to before holding. 
         if(greatest_after_holding > h_now):
-            print('profit exists')
+            # print('profit exists')
             dex_values[i]['h_after'] = greatest_after_holding
             if(after_holdings_1 == greatest_after_holding):
                 dex_values[i]['tokenForEth'] = True 
@@ -120,6 +138,7 @@ def performArbitrage():
         output(0, 0, 0, 0)
     else:
         # make transaction 
+        print('winning index was ' + str(winning_dex_index))
         contract = w3.eth.contract(address=dex_address, abi=dex_abi)
         tok_amount = dex_values[winning_dex_index]['token_amount'] 
         eth_amount = dex_values[winning_dex_index]['ether_amount'] 
@@ -131,7 +150,10 @@ def performArbitrage():
                 'from': config['account_address'],
                 'nonce': w3.eth.get_transaction_count( config['account_address'] )
             })
+            # sign transaction, execute transaction
         else: # ether for token transfer
+            print(eth_amount)
+            print(type(eth_amount))
             transaction = contract.functions.exchangeEtherForToken().buildTransaction({
                 'gas': 150000,
                 'gasPrice': w3.toWei('10', 'gwei'),
@@ -139,7 +161,8 @@ def performArbitrage():
                 'from': config['account_address'],
                 'nonce': w3.eth.get_transaction_count( config['account_address'] )
             })
-
+            # sign transaction, execute transaction
+            # determine how much gas was actually used in the transaction. convert to USD and provide it in the below call to output 
         # output(ethAmt, tcAmt, fees, holdings)  # does fees take into account the dex fees? Directions say no 
         output(dex_values[winning_dex_index]['ether_amount'], dex_values[winning_dex_index]['token_amount'], dex_values[winning_dex_index]['g'], dex_values[winning_dex_index]['h_after'])
 
