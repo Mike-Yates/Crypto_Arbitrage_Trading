@@ -17,6 +17,8 @@ def performArbitrage():
         qe = dex_values[i]['qe']
         dex_values[i]['qt'] = contract.functions.balanceOf(config['account_address']).call() / (10**10) # this returns how much token the account address has 
         qt = dex_values[i]['qt'] 
+        print("my account has this much ether: " + str(qe))
+        print("my account has this much token coin: " + str(qt))
        
         contract = w3.eth.contract(address=dex_address, abi=dex_abi)
         dex_info = contract.functions.getDEXinfo().call()
@@ -85,7 +87,7 @@ def performArbitrage():
             δe1 = qe
         if(δe2<0):
             δe2 = 0
-        if(δe2>qe): # account for amounts greater than I own 
+        if(δe2>qe): 
             δe2 = qe
 
         after_holdings_3 = (qt+f*yd-f*kd/(xd+δe1)) * pt + (qe-δe1) * pe - g * pe
@@ -106,7 +108,7 @@ def performArbitrage():
             elif(after_holdings_2 == greatest_after_holding):
                 dex_values[i]['tokenForEth'] = True 
                 dex_values[i]['token_amount'] = δt2
-                dex_values[i]['ether_amount'] = xd - (kd / (yd + δt2))
+                dex_values[i]['ether_amount'] = xd - (kd / (yd + δt2))  # added -1 to make sure eth amount is negative  -------------------------------
                 dex_values[i]['g'] = g * 2
             elif(after_holdings_3 == greatest_after_holding):
                 dex_values[i]['tokenForEth'] = False 
@@ -120,7 +122,7 @@ def performArbitrage():
             print("no profit here")
             dex_values[i]['amount'] = 0
             dex_values[i]['tokenForEth'] = False 
-            dex_values[i]['h_after'] = 0    
+            dex_values[i]['h_after'] = 0  
         i += 1
         # end for loop 
 
@@ -128,6 +130,7 @@ def performArbitrage():
     winning_dex_index = -1
     best_trade_val = 0 #dex_values[i]['h_now']
     i = 0
+    final_gas_fee = 0
     for x in dex_values:
         if(x['h_after'] > best_trade_val):
             best_trade_val = x['h_after']
@@ -139,31 +142,64 @@ def performArbitrage():
     else:
         # make transaction 
         print('winning index was ' + str(winning_dex_index))
-        contract = w3.eth.contract(address=dex_address, abi=dex_abi)
-        tok_amount = dex_values[winning_dex_index]['token_amount'] 
+        
+        tok_amount = int(dex_values[winning_dex_index]['token_amount'] * (10**10))
+        print("the token (small denomination) amount to be traded is" + str(tok_amount))
         eth_amount = dex_values[winning_dex_index]['ether_amount'] 
+        print("the eth amount to be traded is" + str(eth_amount))
         if(dex_values[winning_dex_index]['tokenForEth']): # token for ether transfer 
+            contract = w3.eth.contract(address=config['tokencc_addr'], abi=cc_abi)
+            transaction = contract.functions.approve(config['dex_addrs'][winning_dex_index], tok_amount).buildTransaction({
+                'gas': 150000,
+                'gasPrice': w3.toWei('10', 'gwei'),
+                # 'value': int(eth_amount * (10**18)), # w3.toWei(eth_amount, 'ether'), # the amount of gas shouldn't be dependent on how much ether is transfered 
+                'from': config['account_address'],
+                'nonce': w3.eth.get_transaction_count( config['account_address'] )
+            })
+            signed_txn = w3.eth.account.signTransaction(transaction, private_key=config['account_private_key'])
+            ret = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            transaction_receipt = w3.eth.wait_for_transaction_receipt(ret)
+
+            contract = w3.eth.contract(address=config['dex_addrs'][winning_dex_index], abi=dex_abi)
             transaction = contract.functions.exchangeTokenForEther(tok_amount).buildTransaction({
                 'gas': 150000,
                 'gasPrice': w3.toWei('10', 'gwei'),
-                'value': w3.toWei(eth_amount, 'ether'), # the amount of gas shouldn't be dependent on how much ether is transfered 
+                # 'value': int(eth_amount * (10**18)), # w3.toWei(eth_amount, 'ether'), # the amount of gas shouldn't be dependent on how much ether is transfered 
                 'from': config['account_address'],
                 'nonce': w3.eth.get_transaction_count( config['account_address'] )
             })
             # sign transaction, execute transaction
+            signed_txn = w3.eth.account.signTransaction(transaction, private_key=config['account_private_key'])
+            ret = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            transaction_receipt = w3.eth.wait_for_transaction_receipt(ret)
+            # tx = w3.eth.get_transaction(ret)
+            print("the status of the transaction1 was " + str(transaction_receipt['status']))
+            printRevertReason(w3, ret)
+            final_gas_fee = transaction_receipt['cumulativeGasUsed'] * 10 * (10**-9) * config['price_eth']
         else: # ether for token transfer
             print(eth_amount)
             print(type(eth_amount))
+            contract = w3.eth.contract(address=config['dex_addrs'][winning_dex_index], abi=dex_abi)
             transaction = contract.functions.exchangeEtherForToken().buildTransaction({
                 'gas': 150000,
                 'gasPrice': w3.toWei('10', 'gwei'),
-                'value': w3.toWei(eth_amount, 'ether'), # the amount of gas shouldn't be dependent on how much ether is transfered 
+                'value': int(eth_amount * (10**18)), #w3.toWei(eth_amount, 'ether'), # i think the toWei function rounds weird.  
                 'from': config['account_address'],
                 'nonce': w3.eth.get_transaction_count( config['account_address'] )
             })
-            # sign transaction, execute transaction
-            # determine how much gas was actually used in the transaction. convert to USD and provide it in the below call to output 
+            signed_txn = w3.eth.account.signTransaction(transaction, private_key=config['account_private_key'])
+            ret = w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            transaction_receipt = w3.eth.wait_for_transaction_receipt(ret)
+            print("the status of the transaction2 was " + str(transaction_receipt['status']))
+            printRevertReason(w3, ret)
+            # tx = w3.eth.get_transaction(ret)
+            final_gas_fee = transaction_receipt['cumulativeGasUsed'] * 10 * (10**-9) * config['price_eth']
+
+        if(dex_values[winning_dex_index]['tokenForEth']):
+            dex_values[winning_dex_index]['token_amount'] = -1 * dex_values[winning_dex_index]['token_amount']
+        else: 
+            dex_values[winning_dex_index]['ether_amount'] = -1 * dex_values[winning_dex_index]['ether_amount']
         # output(ethAmt, tcAmt, fees, holdings)  # does fees take into account the dex fees? Directions say no 
-        output(dex_values[winning_dex_index]['ether_amount'], dex_values[winning_dex_index]['token_amount'], dex_values[winning_dex_index]['g'], dex_values[winning_dex_index]['h_after'])
+        output(dex_values[winning_dex_index]['ether_amount'], dex_values[winning_dex_index]['token_amount'], final_gas_fee, dex_values[winning_dex_index]['h_after'])
 
 performArbitrage() 
