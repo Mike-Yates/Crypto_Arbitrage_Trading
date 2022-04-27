@@ -7,9 +7,11 @@ hook() #  function needs be called at the start of each program execution run
 
 def performArbitrage(): 
     w3 = config['connection_uri']
-    dex_values = [{}, {}, {}, {}, {}] 
+
+    dex_values = [] 
     i = 0
     for dex_address in config['dex_addrs']: # loop through all the dexes. 
+        dex_values.append({})
         contract = w3.eth.contract(address=config['tokencc_addr'], abi=cc_abi)
         # The quantity of each that we currently have is qe and qt, for the quantity of ETH and TC, respectively
         # The values qe and qt are how much you (or, rather, the arbitrage.py program) have.
